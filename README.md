@@ -46,3 +46,8 @@ Follow these steps to set up and train NanoLlama:
    ```python
    python inference.py
    ```
+
+5. **Experimental Results**
+   I trained a model with 1300 steps, and logged the training and val loss per 100 steps.
+
+![loss_curve](./assets/loss_curve.eps)
