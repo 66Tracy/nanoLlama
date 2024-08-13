@@ -8,6 +8,9 @@ NanoLlama is a minimalistic implementation of the Llama model, designed with onl
 
 NanoLlama is a simplified version of the Llama model, optimized for environments with limited computational resources. With only 200 million parameters, it offers a great balance between performance and efficiency.
 
+- `Number of Parameters`: 216 M
+- `Inference Loading`: 872.7 MiB
+
 ## Requirements
 
 To get started, ensure you have the following Python packages installed:
