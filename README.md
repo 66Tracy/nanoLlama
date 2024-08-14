@@ -1,4 +1,4 @@
-# NanoLlama - Personal Project
+# NanoLlama
 
 ![NanoLlama Logo](./assets/logo.png)
 
