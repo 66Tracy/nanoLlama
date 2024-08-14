@@ -2,7 +2,7 @@
 
 ![NanoLlama Logo](./assets/logo.png)
 
-NanoLlama is a minimalistic implementation of the Llama model, designed with only 200 million parameters. This makes it incredibly lightweight and easy to use, hence the name "NanoLlama."
+NanoLlama is a minimalistic implementation of the Llama model, designed with only 200 million parameters. This makes it incredibly lightweight and easy to use, hence the name "NanoLlama". Developed from scratch by `66Tracy`.
 
 ## Description
 
