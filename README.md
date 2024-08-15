@@ -54,7 +54,9 @@ Follow these steps to set up and train NanoLlama:
 5. **Experimental Results**
    I trained a model with 1500 steps, and logged the training and val loss per 100 steps.
 
-![loss_curve](./assets/loss.jpg)
+<p align="center">
+  <img src="./assets/loss.jpg" alt="loss_curve" style="width: 60%;" />
+</p>
 
    And the inference performance is as below: (with `GRUMIO:` as prompt, we can see some interesting output)
 
