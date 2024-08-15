@@ -274,39 +274,49 @@ class LlamaCasualModel(nn.Module):
         n_params = sum(p.numel()*p.element_size() for p in self.parameters())
         return n_params
 
+    ## merged from transformers.models.llama.modeling_llama.LlamaModel._update_causal_mask
     def forward(self,
                 input_ids: torch.Tensor,
-                labels:Optional[torch.Tensor]=None):
+                labels:Optional[torch.Tensor]=None,
+                attention_mask:Optional[torch.Tensor]=None):
         
-        ## 取出对应的词嵌入
-        inputs_embeds = self.emb_tokens(input_ids)
-        ## 构造完整的position_ids shape: [seq_len]：0 ~ seq_len-1
-        cache_position = torch.arange(
-            inputs_embeds.shape[1], device=inputs_embeds.device
-        )
-        ## [seq_Len] -> [1, seq_len] 可以不是batch，因为全都加上就好了
-        position_ids = cache_position.unsqueeze(0)
-
-        ## 生成掩码张量
-        dtype, device = inputs_embeds.dtype, inputs_embeds.device
-        ## 拿到
+        ## 取出对应的词嵌入，与相应的定义
+        input_tensor = self.emb_tokens(input_ids)
+        dtype, device = input_tensor.dtype, input_tensor.device
         min_dtype = torch.finfo(dtype).min
-        sequence_length = inputs_embeds.shape[1]
-        ## 为什么是seq_len+1；这里用输入变量的最小值为掩码，合理
-        ## torch.full是填充出一个全部值为min_dtype的矩阵
-        causal_mask = torch.full((sequence_length, sequence_length+1), fill_value=min_dtype, dtype=dtype, device=device)
+        sequence_length = input_tensor.shape[1]
+        target_length = (
+            attention_mask.shape[-1]
+            if attention_mask is not None
+            else sequence_length + 1
+        )
+
+        ## 构建位置向量：[seq_Len] -> [1, seq_len] 
+        position_ids = torch.arange(
+            sequence_length, device=device
+        ).unsqueeze(0)
+
+        ## causal_mask: [seq_len, target_len]
+        causal_mask = torch.full(
+            (sequence_length, target_length), fill_value=min_dtype, dtype=dtype, device=device
+        )
+        ## causal_mask: 转化为对角线为1的下三角矩阵: [seq_len, target_len]
         if sequence_length != 1:
-            ## 只保留右上三角，其余为0
-            ## diagonal的意思是，对角线标号为0，每往斜上方挪一位就+1；所以此处是对角线及对角线左下方都为0
-            ## attention_mask是加上的，所以这么处理没问题~
             causal_mask = torch.triu(causal_mask, diagonal=1)
-        ## 1) [0~seq_len]的序列，与[seq_len-1]做逐元素对比，得到一个[seq_len, seq_len+1]的bool矩阵；结果应该与上面一致
-        causal_mask *= torch.arange(sequence_length+1, device=device) > cache_position.reshape(-1, 1)
-        ## 2）[seq_len, seq_len+1] -> [bsz, 1, seq_len, seq_len+1]
-        causal_mask = causal_mask[None, None, :, :].expand(inputs_embeds.shape[0], 1, -1, -1)
+        causal_mask = causal_mask[None, None, :, :].expand(input_tensor.shape[0], 1, -1, -1)
+
+        ## 此处用于处理外部传入的句子的padding掉末尾无效token的attention mask: [batch_size, seq_len]
+        if attention_mask is not None and attention_mask.dim() == 2:
+            causal_mask = causal_mask.clone()  # copy to contiguous memory for in-place edit
+            mask_length = attention_mask.shape[-1]
+            padding_mask = causal_mask[:, :, :, :mask_length] + attention_mask[:, None, None, :]
+            padding_mask = padding_mask == 0
+            causal_mask[:, :, :, :mask_length] = causal_mask[:, :, :, :mask_length].masked_fill(
+                padding_mask, min_dtype
+            )
 
         # embed positions
-        hidden_states = inputs_embeds
+        hidden_states = input_tensor
         ## 1）Docder传播
         for decoder_layer in self.layers:
             layer_outputs = decoder_layer(
@@ -318,22 +328,28 @@ class LlamaCasualModel(nn.Module):
         hidden_states = layer_outputs[0]
         ## 2）norm
         hidden_states = self.norm(hidden_states)
-        ## 3）传入lm_head
-        logits = self.lm_head(hidden_states)
-        logits = logits.float()
-
+        
         loss = None
         if labels is not None:
-            # Shift so that tokens < n predict n
-            shift_logits = logits[..., :-1, :].contiguous()
-            shift_labels = labels[..., 1:].contiguous()
-            # Flatten the tokens
-            loss_fct = CrossEntropyLoss()
-            shift_logits = shift_logits.view(-1, self.config.vocab_size)
-            shift_labels = shift_labels.view(-1)
-            # Enable model parallelism
-            shift_labels = shift_labels.to(shift_logits.device)
-            loss = loss_fct(shift_logits, shift_labels)
+            ## 3）training: batch lm_head prediction
+            logits = self.lm_head(hidden_states)
+            logits = logits.float()
+            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), labels.view(-1), ignore_index=-1)
+            # # Standard Code: Shift so that tokens < n predict n
+            # shift_logits = logits[..., :-1, :].contiguous()
+            # shift_labels = labels[..., 1:].contiguous()
+            # # Flatten the tokens
+            # loss_fct = CrossEntropyLoss()
+            # shift_logits = shift_logits.view(-1, self.config.vocab_size)
+            # shift_labels = shift_labels.view(-1)
+            # # Enable model parallelism
+            # shift_labels = shift_labels.to(shift_logits.device)
+            # loss = loss_fct(shift_logits, shift_labels)
+        else:
+            # inference-time mini-optimization: only forward the lm_head on the very last position
+            logits = self.lm_head(hidden_states[:, [-1], :]) # note: using list [-1] to preserve the time dim
+            logits = logits.float()
+            loss = None
             
         return logits, loss
 
