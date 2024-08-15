@@ -51,6 +51,43 @@ Follow these steps to set up and train NanoLlama:
    ```
 
 5. **Experimental Results**
-   I trained a model with 1300 steps, and logged the training and val loss per 100 steps.
+   I trained a model with 1500 steps, and logged the training and val loss per 100 steps.
 
 ![loss_curve](./assets/loss.jpg)
+
+   And the inference performance is as below: (with `GRUMIO:` as prompt, we can see some interesting output)
+
+   ```text
+   GRUMIO:
+   ----------------------- begin generation -----------------------
+   An you can pardon of a lady me,
+   And the prince.
+   
+   LUCIO:
+   Nay, an eagle, then,
+   Will you go with a prisoner to the prince's goodly
+   Of the time to the belly?
+   
+   DUKE VINCENTIO:
+   To go:
+   By much, you play'd in a foot to the other's not the
+   To the eyes
+   Will you as good my good, back of his
+   the crows my first that with us;
+   And his badIO: not the morning of good
+   And in the house of mine own of his jot.
+   
+   MARIANA:
+   A Patricians,
+   I mean of the great good
+   very summer, so brief, which they see how they from his life.
+   
+   DUKE VINCENTIO:
+   He should deliver'd: if he is't.
+   
+   DUKE VINCENTIO:
+   I'll call him that I, he Angelo;
+   And so much of his life, to you must be
+   A word: but, the world, he;
+   Or a guest he made; for them here?
+   ```
