@@ -10,7 +10,8 @@ NanoLlama is a simplified version of the Llama model, optimized for environments
 
 - `Number of Parameters`: 216 M
 - `Inference Loading`: 872.7 MiB
-- `Training Dataset Tokens`: 301,966 tokens
+- `Dataset`: 301,966 tokens for Training, 36,059 tokens for Val
+- `Training Time`: About 26.7 CPU hours to converge / 0.4 GPU hours to converge.
 
 ## Requirements
 
