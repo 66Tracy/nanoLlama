@@ -2,14 +2,15 @@
 
 ![NanoLlama Logo](./assets/logo.png)
 
-NanoLlama is a minimalistic implementation of the Llama model, designed with only 200 million parameters. This makes it incredibly lightweight and easy to use, hence the name "NanoLlama". Developed from scratch by `66Tracy`.
+This project was developed by `66Tracy`with reference to [karpathy/nanoGPT](https://github.com/karpathy/nanoGPT). NanoLlama is a minimalistic implementation of the Llama model, designed with only 200 million parameters. This makes it incredibly lightweight and easy to use, hence the name "NanoLlama".
 
 ## Description
 
-NanoLlama is a simplified version of the Llama model, optimized for environments with limited computational resources. With only 200 million parameters, it offers a great balance between performance and efficiency.
+NanoLlama is a simplified version of the Llama model, optimized for environments with limited computational resources. With only 200 million parameters, it offers a great balance between performance and efficiency. And I trained the model from scratch using the `Tiny Shakespeare` dataset, which consists of dialogues from various characters.
 
 - `Number of Parameters`: 216 M
 - `Inference Loading`: 872.7 MiB
+- `Training Dataset Tokens`: 301,966 tokens
 
 ## Requirements
 
