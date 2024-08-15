@@ -27,14 +27,14 @@ Follow these steps to set up and train NanoLlama:
    Navigate to the `/data/shakespeare directory`  and run the following command to preprocess the data:
 
    ```bash
-   python parpare.py
+   python prepare.py
    ```
 
 2. **Training Configuration**
    Open the `train.py` file and modify the `device` variable to select your desired training environment:
 
    ```python
-   device = 'cpu' or 'cuda'
+   device = 'cpu' or 'cuda' or 'cuda:0'
    ```
 
 3. **Training the Model**
